@@ -149,6 +149,7 @@ namespace MSSQLUtils
 			this.tbText.Cursor = System.Windows.Forms.Cursors.IBeam;
 			this.tbText.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
 			this.tbText.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.tbText.HighlightingRangeType = FastColoredTextBoxNS.HighlightingRangeType.AllTextRange;
 			this.tbText.IsReplaceMode = false;
 			this.tbText.Language = FastColoredTextBoxNS.Language.SQL;
 			this.tbText.LeftBracket = '(';

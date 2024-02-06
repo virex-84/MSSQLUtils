@@ -226,6 +226,7 @@ namespace MSSQLUtils
 			this.tbSQLText.Cursor = System.Windows.Forms.Cursors.IBeam;
 			this.tbSQLText.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
 			this.tbSQLText.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.tbSQLText.HighlightingRangeType = FastColoredTextBoxNS.HighlightingRangeType.AllTextRange;
 			this.tbSQLText.IsReplaceMode = false;
 			this.tbSQLText.Language = FastColoredTextBoxNS.Language.SQL;
 			this.tbSQLText.LeftBracket = '(';
@@ -238,6 +239,7 @@ namespace MSSQLUtils
 			this.tbSQLText.Size = new System.Drawing.Size(463, 462);
 			this.tbSQLText.TabIndex = 1;
 			this.tbSQLText.Zoom = 100;
+			this.tbSQLText.TextChanged += new System.EventHandler<FastColoredTextBoxNS.TextChangedEventArgs>(this.TbSQLTextTextChanged);
 			// 
 			// backgroundWorker
 			// 

@@ -11,7 +11,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using FastColoredTextBoxNS;
 
 namespace MSSQLUtils
 {
@@ -23,6 +25,7 @@ namespace MSSQLUtils
 		SqlCommand lastCommand;
 		SqlConnection conn;
 		Login.ConnectInfo info;
+		Regex sql_comment_fix = new Regex(@"(?s)/\*(?>/\*(?<LEVEL>)|\*/(?<-LEVEL>)|(?!/\*|\*/).)+(?(LEVEL)(?!))\*/", SyntaxHighlighter.RegexCompiledOption);
 
 		public ListQuery()
 		{
@@ -164,6 +167,13 @@ namespace MSSQLUtils
 		void ListQueryFormClosed(object sender, FormClosedEventArgs e)
 		{
 			EndScan();
+		}
+		
+		void TbCellTextTextChanged(object sender, EventArgs e)
+		{
+			//fix! распознаем комментарии более корректно, и помечаем их
+			Range range = tbSQL.Range;
+			range.SetStyle(tbSQL.SyntaxHighlighter.CommentStyle,sql_comment_fix);
 		}
 		
 	}

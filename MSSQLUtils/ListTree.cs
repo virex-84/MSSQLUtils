@@ -13,7 +13,9 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using FastColoredTextBoxNS;
 
 namespace MSSQLUtils
 {
@@ -30,6 +32,7 @@ namespace MSSQLUtils
 		SqlCommand lastCommand;
 		SqlConnection conn;
 		Login.ConnectInfo info;
+		Regex sql_comment_fix = new Regex(@"(?s)/\*(?>/\*(?<LEVEL>)|\*/(?<-LEVEL>)|(?!/\*|\*/).)+(?(LEVEL)(?!))\*/", SyntaxHighlighter.RegexCompiledOption);
 		
 		//выпадающая подсказка, хинт
 		//добавляем подсказку в свойство Tag		
@@ -344,6 +347,8 @@ namespace MSSQLUtils
 			if (tvList.SelectedNode!=null)
 			if (tvList.SelectedNode.Tag!=null)
 			tbSQLText.Text=tvList.SelectedNode.Tag.ToString();
+			
+			tbSQLText.OnTextChanged();
 		}
 		
 		void ListTreeFormClosed(object sender, FormClosedEventArgs e)
@@ -359,6 +364,13 @@ namespace MSSQLUtils
 		        sb.AppendLine(currentNode.Text);
 		        GetTreeViewNodesText(currentNode.Nodes, sb, level + 2);
 		    }
+		}
+		
+		void TbSQLTextTextChanged(object sender, EventArgs e)
+		{
+			//fix! распознаем комментарии более корректно, и помечаем их
+			Range range = tbSQLText.Range;
+			range.SetStyle(tbSQLText.SyntaxHighlighter.CommentStyle,sql_comment_fix);
 		}			
 		
 	}

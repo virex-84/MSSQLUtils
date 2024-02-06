@@ -254,6 +254,7 @@ namespace MSSQLUtils
 			this.tbCellText.Cursor = System.Windows.Forms.Cursors.IBeam;
 			this.tbCellText.DisabledColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))), ((int)(((byte)(180)))));
 			this.tbCellText.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.tbCellText.HighlightingRangeType = FastColoredTextBoxNS.HighlightingRangeType.AllTextRange;
 			this.tbCellText.IsReplaceMode = false;
 			this.tbCellText.Language = FastColoredTextBoxNS.Language.SQL;
 			this.tbCellText.LeftBracket = '(';
@@ -266,6 +267,7 @@ namespace MSSQLUtils
 			this.tbCellText.Size = new System.Drawing.Size(341, 422);
 			this.tbCellText.TabIndex = 0;
 			this.tbCellText.Zoom = 100;
+			this.tbCellText.TextChanged += new System.EventHandler<FastColoredTextBoxNS.TextChangedEventArgs>(this.TbCellTextTextChanged);
 			// 
 			// btnList
 			// 

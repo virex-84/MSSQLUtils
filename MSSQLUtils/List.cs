@@ -11,7 +11,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data.SqlClient;
 using System.Drawing;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using FastColoredTextBoxNS;
 
 namespace MSSQLUtils
 {
@@ -38,6 +40,7 @@ namespace MSSQLUtils
 		SqlConnection conn;
 		int lastIndex = -1;
 		string changedText = "";
+		Regex sql_comment_fix = new Regex(@"(?s)/\*(?>/\*(?<LEVEL>)|\*/(?<-LEVEL>)|(?!/\*|\*/).)+(?(LEVEL)(?!))\*/", SyntaxHighlighter.RegexCompiledOption);
 		
 		public List()
 		{
@@ -292,6 +295,10 @@ namespace MSSQLUtils
 				btnSave.Enabled = false;
 			
 			changedText = changed;			
+			
+			//fix! распознаем комментарии более корректно, и помечаем их
+			Range range = tbText.Range;
+			range.SetStyle(tbText.SyntaxHighlighter.CommentStyle,sql_comment_fix);			
 		}
 		
 		void BtnSaveClick(object sender, EventArgs e)
