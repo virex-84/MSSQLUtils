@@ -12,10 +12,13 @@ using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using FastColoredTextBoxNS;
+using Microsoft.SqlServer.Management.SqlParser.Parser;
+using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
 
 namespace MSSQLUtils
 {
@@ -27,6 +30,7 @@ namespace MSSQLUtils
 			public bool isShowAll { get; set; }
 			public bool isFindUp { get; set; }
 			public int scanLevel { get; set; }
+			public bool findExtend { get; set; }
 		}			
 		
 		SqlCommand lastCommand;
@@ -238,6 +242,23 @@ namespace MSSQLUtils
 				});					
 			}
 			
+			//=====
+			if (runInfo.findExtend) {
+			//ищем в строковых переменных типа set @SQL = "exec dbo.Procedure(..."
+			List<string> items = parceExecSQL(node.Tag.ToString());
+			for (int y=0; y<items.Count; y++){
+				var def = getDefinition(con,items[y]);
+				this.Invoke((MethodInvoker)delegate {
+					var name = items[y];
+					var child = node.Nodes.Add(name);
+					child.Name=name;
+					child.Tag=def;
+					child.Parent.ExpandAll();
+				});	
+			}
+			}
+			//=====
+			
 			//this.Invoke((MethodInvoker)delegate {
 				for (int i=0; i<node.Nodes.Count; i++){
 				
@@ -247,6 +268,9 @@ namespace MSSQLUtils
 					}
 			            		
 			            var name = node.Nodes[i].Name;
+			            
+
+			            
 	            
 			            /*
 			            //вверх ищем всё
@@ -287,7 +311,171 @@ namespace MSSQLUtils
 			    node.ExpandAll();
 			    if (procedureName == tbProcedureName.Text) EndScan();
 			});
-		}	
+		}
+		
+		string getDefinition(SqlConnection con, string procedureName){
+			var sql=@"
+			select text
+			from sysobjects
+			left join syscomments on syscomments.id=sysobjects.id
+			where name = '{0}'
+			";			
+			var start=string.Format(sql, procedureName);			
+
+			try {
+				SqlCommand command = new SqlCommand(start, con);
+				lastCommand = command;
+				using (SqlDataReader reader = command.ExecuteReader()) {
+					
+					DataTable dt = new DataTable();
+					dt.Load(reader);
+					
+					return dt.Rows[0]["text"].ToString();
+				}
+			} catch (Exception ex) {
+				return ex.Message;				
+			}
+		}
+		
+		List<string> parceExecSQL(string sql){
+			
+			var res = new List<string>();
+			var parseResult = Parser.Parse(sql);
+			var varuables = new List<KeyValuePair<string, string>>();
+			
+			foreach (var batch in parseResult.Script.Batches)
+			{
+			    foreach (var chbatch in batch.Statements)
+			    {
+			    	//вытаскиваем плоский список всех потомков
+			    	var all = chbatch.Children.Flatten(x => x.Children).ToList();
+			    	
+			    	foreach (var statement in all/*chbatch.Children*/) {
+			    	
+				    	//SET
+				    	//set @nextproc=
+				    	if (statement is SqlSetStatement){
+				    		var query = ((SqlSetStatement)statement);
+				    		foreach (var item in query.Children){
+				    			if (item is SqlScalarVariableAssignment){
+				    				var variable=((SqlScalarVariableAssignment)item).Variable.VariableName;
+				    				var value=((SqlScalarVariableAssignment)item).Value.Sql.ToString();
+							    	varuables.Add(new KeyValuePair<string, string>(variable,value));
+				    			}
+				    		}
+				    	}
+				    	
+				    	//DECLARE
+				    	//declare @nextproc=
+				    	if (statement is SqlDeclareStatement){
+				    		var query = ((SqlDeclareStatement)statement);
+				    		foreach (var item in query.Children){
+				    			if (item is SqlVariableDeclaration){
+				    				var variable=((SqlVariableDeclaration)item).Name;
+				    				var value=((SqlVariableDeclaration)item).Value;
+				    				if (value!=null)
+							    	varuables.Add(new KeyValuePair<string, string>(variable,value.Sql.ToString()));
+				    			}
+				    		}
+				    	}
+				    	
+				    	//SELECT
+				    	if (statement is SqlSelectStatement){
+				    		var query = ((SqlSelectStatement)statement).SelectSpecification.QueryExpression;
+				    		
+				    		
+				    		//select @variable = 
+				    		try{
+	
+				    			var list=query.Children.Flatten(x => x.Children).Where(x => (x is SqlSelectVariableAssignmentExpression)).ToArray();
+				    								    					
+				    			foreach(SqlSelectVariableAssignmentExpression i in list){
+						    		var variable=i.VariableAssignment.Variable.VariableName;
+						    		var value=i.VariableAssignment.Value;
+						    		if (value!=null)
+										varuables.Add(new KeyValuePair<string, string>(variable,value.Sql.ToString()));			    						
+				    			}
+			    			} catch{}	
+				    		
+				    	
+				    		foreach (var item in query.Children){
+				    			
+				    			//if (item is SqlSetClause){
+				    			//	var list=item.Children.Where(x => ((SqlSelectScalarExpression)x).Alias.ToString()!=searchText/*"NEXTPROC"*/).ToArray();
+				    			//}
+				    			
+				    			//блок SELECT
+				    			if (item is SqlSelectClause){
+				    				try{
+				    					var list=item.Children.ToArray();
+				    								    					
+				    					foreach(SqlSelectScalarExpression i in list){
+				    						//if (result.IndexOf(i.Expression.ToString())<0)
+				    							//@param
+				    							if (i.Expression is SqlScalarVariableRefExpression)
+				    								//result.Add(((SqlScalarVariableRefExpression)i.Expression).VariableName);
+				    								varuables.Add(new KeyValuePair<string, string>("variable",((SqlScalarVariableRefExpression)i.Expression).VariableName));
+				    							//строка
+				    							if (i.Expression is SqlLiteralExpression)
+				    								//result.Add(i.Expression.ToString());
+				    								varuables.Add(new KeyValuePair<string, string>("variable",i.Expression.ToString()));
+				    					}
+			    					} catch{}			
+				    			}
+		    			
+				    			
+				    			/*
+				    			//блок FROM
+				    			if (item is SqlFromClause){
+				    				tbSQLText.Text+=item.Sql.ToString();
+				    			}
+				    			
+				    			//блок WHERE
+				    			if (item is SqlWhereClause){
+				    				tbSQLText.Text+=item.Sql.ToString();
+				    			}
+								*/   			
+				
+				    		}
+				    	}				    	
+			    	}
+			    }
+			}
+			
+			//если в текстовой переменной есть exec ... - парсим
+			foreach (var item in varuables){
+				if (item.Value.Contains("exec ",StringComparison.OrdinalIgnoreCase)){
+					var sql2 = Utils.ClearShema(item.Value);
+					sql2 = Utils.ClearLongComment(sql2);
+					sql2 = Utils.ClearShortComment(sql2);
+
+					var m = Regex.Matches(sql2,@"exec\s+(\w+)",RegexOptions.Multiline).Cast<Match>().Select(p => p.Value).ToList();
+					foreach (var gr in m){
+						var t = gr;
+						//-- exec app_procedure
+						var parseResult1 = Parser.Parse(t);
+						
+						foreach (var batch in parseResult1.Script.Batches)
+						{
+						    foreach (var chbatch in batch.Statements)
+						    {
+						    	//вытаскиваем плоский список всех потомков
+						    	var all = chbatch.Children.Flatten(x => x.Children).ToList();
+						    	foreach (var statement in all){
+					    			if (statement is SqlIdentifier){
+					    				var query = ((SqlIdentifier)statement);
+					    				res.Add(query.Value);
+						    		}
+						   		}
+						    }
+						}				
+					}
+				}
+			}			
+			
+
+			return res.Distinct().ToList();
+		}
 
 		void BackgroundWorkerDoWork(object sender, System.ComponentModel.DoWorkEventArgs e)
 		{
@@ -316,6 +504,7 @@ namespace MSSQLUtils
 				runInfo.isShowAll=cbShowAll.Checked;
 				runInfo.isFindUp=cbFindUp.Checked;
 				runInfo.scanLevel=cbLevel.SelectedIndex;
+				runInfo.findExtend=cbFindExtend.Checked;
 				
                 backgroundWorker.RunWorkerAsync(runInfo);
             }
@@ -347,7 +536,6 @@ namespace MSSQLUtils
 			if (tvList.SelectedNode!=null)
 			if (tvList.SelectedNode.Tag!=null)
 			tbSQLText.Text=tvList.SelectedNode.Tag.ToString();
-			
 			tbSQLText.OnTextChanged();
 		}
 		
@@ -365,7 +553,6 @@ namespace MSSQLUtils
 		        GetTreeViewNodesText(currentNode.Nodes, sb, level + 2);
 		    }
 		}
-		
 		void TbSQLTextTextChanged(object sender, EventArgs e)
 		{
 			//fix! распознаем комментарии более корректно, и помечаем их

@@ -26,6 +26,7 @@ namespace MSSQLUtils
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.ComboBox cbLevel;
 		private System.ComponentModel.BackgroundWorker backgroundWorker;
+		private System.Windows.Forms.CheckBox cbFindExtend;
 		
 		/// <summary>
 		/// Disposes resources used by the form.
@@ -53,6 +54,7 @@ namespace MSSQLUtils
 			this.splitContainer1 = new System.Windows.Forms.SplitContainer();
 			this.tvList = new System.Windows.Forms.TreeView();
 			this.panel1 = new System.Windows.Forms.Panel();
+			this.cbFindExtend = new System.Windows.Forms.CheckBox();
 			this.label2 = new System.Windows.Forms.Label();
 			this.cbLevel = new System.Windows.Forms.ComboBox();
 			this.cbShowAll = new System.Windows.Forms.CheckBox();
@@ -85,8 +87,8 @@ namespace MSSQLUtils
 			// splitContainer1.Panel2
 			// 
 			this.splitContainer1.Panel2.Controls.Add(this.tbSQLText);
-			this.splitContainer1.Size = new System.Drawing.Size(701, 466);
-			this.splitContainer1.SplitterDistance = 226;
+			this.splitContainer1.Size = new System.Drawing.Size(701, 496);
+			this.splitContainer1.SplitterDistance = 227;
 			this.splitContainer1.SplitterWidth = 8;
 			this.splitContainer1.TabIndex = 0;
 			// 
@@ -96,12 +98,13 @@ namespace MSSQLUtils
 			this.tvList.HideSelection = false;
 			this.tvList.Location = new System.Drawing.Point(0, 0);
 			this.tvList.Name = "tvList";
-			this.tvList.Size = new System.Drawing.Size(222, 254);
+			this.tvList.Size = new System.Drawing.Size(223, 248);
 			this.tvList.TabIndex = 1;
 			this.tvList.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.TvListAfterSelect);
 			// 
 			// panel1
 			// 
+			this.panel1.Controls.Add(this.cbFindExtend);
 			this.panel1.Controls.Add(this.label2);
 			this.panel1.Controls.Add(this.cbLevel);
 			this.panel1.Controls.Add(this.cbShowAll);
@@ -110,14 +113,26 @@ namespace MSSQLUtils
 			this.panel1.Controls.Add(this.label1);
 			this.panel1.Controls.Add(this.btnGetTree);
 			this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
-			this.panel1.Location = new System.Drawing.Point(0, 254);
+			this.panel1.Location = new System.Drawing.Point(0, 248);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(222, 208);
+			this.panel1.Size = new System.Drawing.Size(223, 244);
 			this.panel1.TabIndex = 0;
+			// 
+			// cbFindExtend
+			// 
+			this.cbFindExtend.Checked = true;
+			this.cbFindExtend.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.cbFindExtend.Location = new System.Drawing.Point(10, 111);
+			this.cbFindExtend.Name = "cbFindExtend";
+			this.cbFindExtend.Size = new System.Drawing.Size(193, 24);
+			this.cbFindExtend.TabIndex = 7;
+			this.cbFindExtend.Tag = "Поиск exec в строках и прочее";
+			this.cbFindExtend.Text = "Дополнительный поиск";
+			this.cbFindExtend.UseVisualStyleBackColor = true;
 			// 
 			// label2
 			// 
-			this.label2.Location = new System.Drawing.Point(10, 108);
+			this.label2.Location = new System.Drawing.Point(10, 139);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(210, 17);
 			this.label2.TabIndex = 6;
@@ -149,7 +164,7 @@ namespace MSSQLUtils
 			"18",
 			"19",
 			"20"});
-			this.cbLevel.Location = new System.Drawing.Point(10, 128);
+			this.cbLevel.Location = new System.Drawing.Point(10, 159);
 			this.cbLevel.Name = "cbLevel";
 			this.cbLevel.Size = new System.Drawing.Size(193, 24);
 			this.cbLevel.TabIndex = 5;
@@ -181,7 +196,7 @@ namespace MSSQLUtils
 			| System.Windows.Forms.AnchorStyles.Right)));
 			this.tbProcedureName.Location = new System.Drawing.Point(10, 23);
 			this.tbProcedureName.Name = "tbProcedureName";
-			this.tbProcedureName.Size = new System.Drawing.Size(192, 22);
+			this.tbProcedureName.Size = new System.Drawing.Size(193, 22);
 			this.tbProcedureName.TabIndex = 2;
 			this.tbProcedureName.Tag = "Таблица, вьюха, функция, процедура...";
 			this.tbProcedureName.Text = "procedure_name";
@@ -196,7 +211,7 @@ namespace MSSQLUtils
 			// 
 			// btnGetTree
 			// 
-			this.btnGetTree.Location = new System.Drawing.Point(25, 158);
+			this.btnGetTree.Location = new System.Drawing.Point(25, 189);
 			this.btnGetTree.Name = "btnGetTree";
 			this.btnGetTree.Size = new System.Drawing.Size(150, 40);
 			this.btnGetTree.TabIndex = 0;
@@ -236,7 +251,7 @@ namespace MSSQLUtils
 			this.tbSQLText.RightBracket = ')';
 			this.tbSQLText.SelectionColor = System.Drawing.Color.FromArgb(((int)(((byte)(60)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(255)))));
 			this.tbSQLText.ServiceColors = ((FastColoredTextBoxNS.ServiceColors)(resources.GetObject("tbSQLText.ServiceColors")));
-			this.tbSQLText.Size = new System.Drawing.Size(463, 462);
+			this.tbSQLText.Size = new System.Drawing.Size(462, 492);
 			this.tbSQLText.TabIndex = 1;
 			this.tbSQLText.Zoom = 100;
 			this.tbSQLText.TextChanged += new System.EventHandler<FastColoredTextBoxNS.TextChangedEventArgs>(this.TbSQLTextTextChanged);
@@ -251,7 +266,7 @@ namespace MSSQLUtils
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(701, 466);
+			this.ClientSize = new System.Drawing.Size(701, 496);
 			this.Controls.Add(this.splitContainer1);
 			this.Name = "ListTree";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

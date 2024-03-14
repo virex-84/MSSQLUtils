@@ -9,6 +9,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
@@ -129,6 +130,24 @@ namespace MSSQLUtils
 			}
 			
 			return result;
-		}		
+		}
+
+	    public static string ClearShema(string procedurename){
+	    	procedurename = procedurename.Replace("'","");
+			procedurename = procedurename.Replace("[","");
+			procedurename = procedurename.Replace("]","");							
+			//отсекаем "dbo." из dbo.procedurename
+			//иначе запрос не выдаст содержимое
+			procedurename = Regex.Replace(procedurename,@"[\w]+\.(?!\.)","");
+			return procedurename;
+	    }
+	    
+	    public static string ClearLongComment(string sql){
+			return Regex.Replace(sql,@"(?s)/\*(?>/\*(?<LEVEL>)|\*/(?<-LEVEL>)|(?!/\*|\*/).)+(?(LEVEL)(?!))\*/", "");	    	
+	    }
+	    
+	    public static string ClearShortComment(string sql){
+			return Regex.Replace(sql,@"(/\*(.|[\r\n])*?\*/)|(--(.*|[\r\n]))", "");	    	
+	    }	    
 	}
 }
